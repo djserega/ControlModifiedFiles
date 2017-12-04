@@ -10,11 +10,15 @@ namespace ControlModifiedFiles
 {
     public class ColumnAttribute : Attribute
     {
+        #region Properties
+
         public string HeaderName { get; set; }
         public bool VisibleColumn { get; set; }
         public string SortMemberPath { get; set; }
         public ListSortDirection? SortDirection { get; set; }
         public bool IsOnlyRead { get; set; }
+
+        #endregion
 
         public ColumnAttribute(string headerName, bool visibleColumn = true,
             string sortMemberPath = "", DataGridSortDirection sortDirection = DataGridSortDirection.none,

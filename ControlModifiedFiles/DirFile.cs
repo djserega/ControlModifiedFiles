@@ -87,7 +87,7 @@ namespace ControlModifiedFiles
             {
                 Filter = "Внешняя обработка (*.epf)|*.epf" +
                 "|Внешний отчет (*.erf)|*.erf" +
-                "|Поддерживаемые файлы|*.epf,*.erf",
+                "|Поддерживаемые файлы|*.epf;*.erf",
                 Multiselect = false,
                 Title = "Выбор файла контроля"
             };

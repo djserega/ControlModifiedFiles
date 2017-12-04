@@ -11,7 +11,7 @@ namespace ControlModifiedFiles
     {
         private string _pathConfig = Environment.CurrentDirectory + "\\datarow.json";
 
-        internal bool SaveConfig(List<FileInfo> list)
+        internal bool SaveConfig(List<FileSubscriber> list)
         {
             try
             {
@@ -20,7 +20,7 @@ namespace ControlModifiedFiles
                 new DirFile().SaveFile(
                     _pathConfig,
                     serializer.Serialize(
-                        serializer.ConvertToType<List<FileInfo>>(list)));
+                        serializer.ConvertToType<List<FileSubscriber>>(list)));
 
                 Dialog.ShowMessage("Настройки успешно сохранены.");
                 return true;
@@ -32,11 +32,11 @@ namespace ControlModifiedFiles
             }
         }
 
-        internal List<FileInfo> LoadConfig()
+        internal List<FileSubscriber> LoadConfig()
         {
             try
             {
-                List<FileInfo> list = new JavaScriptSerializer().Deserialize<List<FileInfo>>(
+                List<FileSubscriber> list = new JavaScriptSerializer().Deserialize<List<FileSubscriber>>(
                     new DirFile().LoadFile(_pathConfig));
                 Dialog.ShowMessage("Настройки успшешно восстановлены.");
                 return list;

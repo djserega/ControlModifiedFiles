@@ -69,7 +69,7 @@
     <Compile Include="Dialogs.cs" />
     <Compile Include="DirFile.cs" />
     <Compile Include="Enums.cs" />
-    <Compile Include="FileInfo.cs" />
+    <Compile Include="FileSubscriber.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>

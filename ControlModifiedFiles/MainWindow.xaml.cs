@@ -20,8 +20,12 @@ namespace ControlModifiedFiles
     /// </summary>
     public partial class MainWindow : Window
     {
-        public ICollection<FileInfo> _listFile = new List<FileInfo>();
+        #region Properties
+
+        public ICollection<FileSubscriber> _listFile = new List<FileSubscriber>();
         private Subscriber subscriber = new Subscriber();
+
+        #endregion
 
         #region Window
 
@@ -41,7 +45,7 @@ namespace ControlModifiedFiles
 
         private void MiAddFile_Click(object sender, RoutedEventArgs e)
         {
-            List<FileInfo> list = _listFile.ToList();
+            List<FileSubscriber> list = _listFile.ToList();
 
             string path = new DirFile().GetFileChecked(this);
 
@@ -55,13 +59,15 @@ namespace ControlModifiedFiles
 
             ulong sizeFile = pathInfo.GetFileSize();
 
-            FileInfo fileChecked = new FileInfo()
+            FileSubscriber fileChecked = new FileSubscriber()
             {
-                //Checked = true,
+                Checked = true,
                 Path = path,
                 Size = sizeFile,
                 SizeString = pathInfo.GetSizeFormat(sizeFile)
             };
+
+            subscriber.SubscribeChangeFile(fileChecked);
 
             list.Add(fileChecked);
 
@@ -70,11 +76,13 @@ namespace ControlModifiedFiles
 
         private void MiDeleteFile_Click(object sender, RoutedEventArgs e)
         {
-            FileInfo selectedRow = (FileInfo)dgList.CurrentItem;
+            FileSubscriber selectedRow = (FileSubscriber)dgList.CurrentItem;
             if (selectedRow == null)
                 return;
 
-            List<FileInfo> list = _listFile.ToList();
+            List<FileSubscriber> list = _listFile.ToList();
+
+            subscriber.UnsubscribeChangeFile(selectedRow);
 
             list.Remove(selectedRow);
 
@@ -88,23 +96,46 @@ namespace ControlModifiedFiles
 
         private void MiLoadTable_Click(object sender, RoutedEventArgs e)
         {
-            List<FileInfo> list = new SaveLoadConfig().LoadConfig();
+            List<FileSubscriber> list = new SaveLoadConfig().LoadConfig();
             if (list != null)
+            {
                 SetItemSouce(list);
+                subscriber.SubscribeChangeFiles(list);
+            }
         }
 
         #endregion
 
-        private void SetItemSouce(List<FileInfo> list)
+        #region DataGridList
+
+        private void DgList_CurrentCellChanged(object sender, EventArgs e)
+        {
+            //FileSubscriber file = (FileSubscriber)dgList.CurrentItem;
+            //if (file != null)
+            //{
+            //    if (file.Checked)
+            //        subscriber.SubscribeChangeFile(file);
+            //    else
+            //        subscriber.UnsubscribeChangeFile(file);
+            //}
+        }
+
+        private void DgList_RowEditEnding(object sender, DataGridRowEditEndingEventArgs e)
+        {
+            FileSubscriber file = (FileSubscriber)dgList.CurrentItem;
+
+        }
+
+        #endregion
+
+        #region Private methods
+
+        private void SetItemSouce(List<FileSubscriber> list)
         {
             _listFile = list;
             dgList.ItemsSource = _listFile;
         }
 
-        private void DgList_CurrentCellChanged(object sender, EventArgs e)
-        {
-            FileInfo dd = (FileInfo)dgList.CurrentItem;
-            
-        }
+        #endregion
     }
 }
