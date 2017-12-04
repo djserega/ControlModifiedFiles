@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -152,11 +153,16 @@ namespace ControlModifiedFiles
             string fileNameWithVersion = $"{fileNameWithoutExtension} {_prefixNameVersion}";
             string filterFile = $"{fileNameWithVersion}*{fileExtension}";
 
+            string currentHash = GetMD5(file.Path);
+
             DirectoryInfo directoryInfo = new DirectoryInfo(file.DirectoryVersion);
             FileInfo fileInfoMaxEdited = null;
             DateTime dateTimeMaxEdited = DateTime.MinValue;
             foreach (FileInfo versionFile in directoryInfo.GetFiles(filterFile))
             {
+                if (currentHash == GetMD5(versionFile.FullName))
+                    return 0;
+
                 if (dateTimeMaxEdited <= versionFile.LastWriteTime)
                 {
                     fileInfoMaxEdited = versionFile;
@@ -179,6 +185,19 @@ namespace ControlModifiedFiles
             newVersion++;
 
             return newVersion;
+        }
+        private string GetMD5(string path)
+        {
+            string hash;
+            using (MD5 md5 = MD5.Create())
+            {
+                using (FileStream stream = File.OpenRead(path))
+                {
+                    byte[] hashByte = md5.ComputeHash(stream);
+                    hash = BitConverter.ToString(hashByte).Replace("-", "").ToLowerInvariant();
+                }
+            }
+            return hash;
         }
 
         #endregion
