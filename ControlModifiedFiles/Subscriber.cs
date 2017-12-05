@@ -15,8 +15,8 @@ namespace ControlModifiedFiles
         internal Dictionary<FileSubscriber, FileSystemWatcher> DictionaryWatcher { get; private set; }
 
         private string _prefixNameVersion = "{version ";
-
-
+        private string _fileNameWithoutExtension;
+        private string _fileNameWithVersion;
 
         #endregion
 
@@ -64,10 +64,24 @@ namespace ControlModifiedFiles
             for (int i = 0; i < list.Count; i++)
             {
                 FileInfo fileInfo = new FileInfo(list[i].Path);
-                string fileNameWithoutExtension = GetFileNameWithoutExtension(fileInfo);
-                int version = GetCurrentVersionFile(fileInfo, list[i], fileNameWithoutExtension, fileInfo.Extension, false);
+                int version = GetCurrentVersionFile(fileInfo, list[i], false);
                 list[i].Version = version;
             }
+        }
+
+        #endregion
+
+        #region Private methods
+
+        private void GetFileNameWithoutExtension(FileInfo fileInfo)
+        {
+            long startIndex = fileInfo.Name.Length - fileInfo.Extension.Length;
+            _fileNameWithoutExtension = fileInfo.Name.Remove((int)startIndex);
+        }
+
+        private void GetFileNameWithVersion()
+        {
+            _fileNameWithVersion = $"{_fileNameWithoutExtension} {_prefixNameVersion}";
         }
 
         #endregion
@@ -118,27 +132,20 @@ namespace ControlModifiedFiles
             }
         }
 
-        private string GetFileNameWithoutExtension(FileInfo fileInfo)
-        {
-            long startIndex = fileInfo.Name.Length - fileInfo.Extension.Length;
-            return fileInfo.Name.Remove((int)startIndex);
-        }
-
         #endregion
 
         #region Version
 
         private string GetFileNameVersion(FileInfo fileInfo, FileSubscriber file)
         {
-            string fileNameWithoutExtension = GetFileNameWithoutExtension(fileInfo);
-            int version = GetNewVersion(fileInfo, file, fileNameWithoutExtension, fileInfo.Extension);
+            int version = GetNewVersion(fileInfo, file, fileInfo.Extension);
 
             if (version == 0)
                 return null;
 
             string fileNameVersion =
                 $"{file.DirectoryVersion}" +
-                $"\\{fileNameWithoutExtension} " +
+                $"\\{_fileNameWithoutExtension} " +
                 $"{_prefixNameVersion}" +
                 $"{version}}}" +
                 $"{fileInfo.Extension}";
@@ -156,8 +163,10 @@ namespace ControlModifiedFiles
                 if (!directoryInfoVersion.Exists)
                     directoryInfoVersion.Create();
 
+                GetFileNameWithoutExtension(fileInfo);
+
                 DirectoryInfo directoryInfoFile = new DirectoryInfo(
-                    $"{directoryInfoVersion.FullName}\\{GetFileNameWithoutExtension(fileInfo)}");
+                    $"{directoryInfoVersion.FullName}\\{_fileNameWithoutExtension}");
                 if (!directoryInfoFile.Exists)
                     directoryInfoFile.Create();
 
@@ -169,35 +178,35 @@ namespace ControlModifiedFiles
             }
         }
 
-        private int GetNewVersion(FileInfo fileInfo, FileSubscriber file, string fileNameWithoutExtension, string fileExtension)
+        private int GetNewVersion(FileInfo fileInfo, FileSubscriber file, string fileExtension)
         {
-            int newVersion = GetCurrentVersionFile(fileInfo, file, fileNameWithoutExtension, fileExtension);
+            int newVersion = GetCurrentVersionFile(fileInfo, file);
 
             newVersion++;
 
             return newVersion;
         }
 
-        private int GetCurrentVersionFile(FileInfo fileInfo, FileSubscriber file, string fileNameWithoutExtension,
-            string fileExtension, bool controlCurrentHash = true)
+        private int GetCurrentVersionFile(FileInfo fileInfo, FileSubscriber file, bool controlCurrentHash = true)
         {
             if (String.IsNullOrWhiteSpace(file.DirectoryVersion))
                 return 0;
 
-            string fileNameWithVersion = $"{fileNameWithoutExtension} {_prefixNameVersion}";
+            GetFileNameWithoutExtension(fileInfo);
+            GetFileNameWithVersion();
 
-            FileInfo fileInfoMaxEdited = GetFileLastVersion(file, fileNameWithVersion, fileExtension, controlCurrentHash);
+            FileInfo fileInfoMaxEdited = GetFileLastVersion(file, fileInfo.Extension, controlCurrentHash);
 
-            return GetNumberVersionIsFileName(fileInfoMaxEdited, fileInfo, fileNameWithVersion, fileExtension);
+            return GetNumberVersionIsFileName(fileInfoMaxEdited, fileInfo);
         }
 
-        private FileInfo GetFileLastVersion(FileSubscriber file, string fileNameWithVersion, string fileExtension, bool controlCurrentHash = false)
+        private FileInfo GetFileLastVersion(FileSubscriber file, string fileExtension, bool controlCurrentHash = false)
         {
             FileInfo fileInfoMaxEdited = null;
 
             string currentHash = GetMD5(file.Path);
 
-            FileInfo[] filesVersions = new DirectoryInfo(file.DirectoryVersion).GetFiles($"{fileNameWithVersion}*{fileExtension}");
+            FileInfo[] filesVersions = new DirectoryInfo(file.DirectoryVersion).GetFiles($"{_fileNameWithVersion}*{fileExtension}");
 
             DateTime dateTimeMaxEdited = DateTime.MinValue;
             foreach (FileInfo versionFile in filesVersions)
@@ -216,7 +225,7 @@ namespace ControlModifiedFiles
             return fileInfoMaxEdited;
         }
 
-        private int GetNumberVersionIsFileName(FileInfo fileInfoMaxEdited, FileInfo fileInfo, string fileNameWithVersion, string fileExtension)
+        private int GetNumberVersionIsFileName(FileInfo fileInfoMaxEdited, FileInfo fileInfo)
         {
             int currentVersion = 0;
 
@@ -226,8 +235,8 @@ namespace ControlModifiedFiles
                     return 0;
 
                 string nameFileVersion = fileInfoMaxEdited.Name;
-                string stringVersion = nameFileVersion.Remove(0, fileNameWithVersion.Length);
-                int startIndex = stringVersion.Length - ($"}}{fileExtension}".Length);
+                string stringVersion = nameFileVersion.Remove(0, _fileNameWithVersion.Length);
+                int startIndex = stringVersion.Length - ($"}}{fileInfo.Extension}".Length);
                 stringVersion = stringVersion.Remove(startIndex);
                 int.TryParse(stringVersion, out currentVersion);
             }
