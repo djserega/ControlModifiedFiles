@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -39,6 +40,8 @@ namespace ControlModifiedFiles
             dgList.ItemsSource = _listFile;
             if (Properties.Settings.Default.Autoload)
                 LoadTable();
+
+            StartAutoupdateVersionAsync();
         }
 
         #endregion
@@ -130,6 +133,41 @@ namespace ControlModifiedFiles
 
         #endregion
 
+        #region Update version
+
+        private async Task StartUpdateVersionFiles()
+        {
+            List<FileSubscriber> listVersion = await subscriber.LoadVersionFilesAsync(_listFile.ToList());
+
+            dgList.IsReadOnly = true;
+
+            List<FileSubscriber> list = _listFile.ToList();
+            for (int i = 0; i < list.Count; i++)
+            {
+                FileSubscriber finded = listVersion.Find(f => f.Path == list[i].Path);
+                if (finded != null)
+                    list[i].Version = finded.Version;
+                else
+                    list[i].Version = 0;
+            }
+
+            SetItemSouce(list);
+
+            dgList.IsReadOnly = false;
+        }
+
+        private async void StartAutoupdateVersionAsync()
+        {
+            if (Properties.Settings.Default.AutoupdateVersion)
+            {
+                await StartUpdateVersionFiles();
+                await Task.Delay(5 * 1000);
+                StartAutoupdateVersionAsync();
+            }
+        }
+
+        #endregion
+
         #region Private methods
 
         private void LoadTable()
@@ -138,7 +176,7 @@ namespace ControlModifiedFiles
             if (list != null)
             {
                 subscriber.SubscribeChangeFiles(list);
-                subscriber.LoadVersionFiles(list);
+                StartUpdateVersionFiles();
                 SetItemSouce(list);
             }
         }

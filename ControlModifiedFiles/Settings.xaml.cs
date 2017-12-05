@@ -42,9 +42,7 @@ namespace ControlModifiedFiles
 
         private void MiSave_Click(object sender, RoutedEventArgs e)
         {
-            var defaultSettings = Properties.Settings.Default;
-            defaultSettings.DirectoryCache = txtDirectoryCache.Text;
-            defaultSettings.Autoload = cboxAutoload.IsChecked.Value;
+            SaveSettings();
             Close();
         }
 
@@ -62,20 +60,16 @@ namespace ControlModifiedFiles
             SetValueSettings(autoload: cboxAutoload.IsChecked.Value);
         }
 
+        private void CboxAutoupdate_Click(object sender, RoutedEventArgs e)
+        {
+            SetValueSettings(autoupdateVersion: cboxAutoload.IsChecked.Value);
+        }
+
         #region Element DirectoryCache
 
         private void TxtDirectoryCache_TextChanged(object sender, TextChangedEventArgs e)
         {
             SetValueSettings(txtDirectoryCache.Text);
-        }
-
-        private void SetValueSettings(string directoryCache = null, bool? autoload = null)
-        {
-            var defaultSettings = Properties.Settings.Default;
-            if (directoryCache != null)
-                defaultSettings.DirectoryCache = directoryCache;
-            if (autoload != null)
-                defaultSettings.Autoload = (bool)autoload;
         }
 
         private void BtnSelectDirectoryCache_Click(object sender, RoutedEventArgs e)
@@ -99,12 +93,33 @@ namespace ControlModifiedFiles
 
         #endregion
 
+        private void SaveSettings()
+        {
+            var defaultSettings = Properties.Settings.Default;
+            defaultSettings.DirectoryCache = txtDirectoryCache.Text;
+            defaultSettings.Autoload = cboxAutoload.IsChecked.Value;
+            defaultSettings.AutoupdateVersion = cboxAutoupdate.IsChecked.Value;
+        }
+
         private void ReadSettings()
         {
             var defaultSettings = Properties.Settings.Default;
             txtDirectoryCache.Text = defaultSettings.DirectoryCache;
             cboxAutoload.IsChecked = defaultSettings.Autoload;
+            cboxAutoupdate.IsChecked = defaultSettings.AutoupdateVersion;
         }
+
+        private void SetValueSettings(string directoryCache = null, bool? autoload = null, bool? autoupdateVersion = null)
+        {
+            var defaultSettings = Properties.Settings.Default;
+            if (directoryCache != null)
+                defaultSettings.DirectoryCache = directoryCache;
+            if (autoload != null)
+                defaultSettings.Autoload = (bool)autoload;
+            if (autoupdateVersion != null)
+                defaultSettings.AutoupdateVersion = (bool)autoupdateVersion;
+        }
+
 
     }
 }

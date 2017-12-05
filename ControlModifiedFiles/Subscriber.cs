@@ -5,12 +5,15 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace ControlModifiedFiles
 {
     internal class Subscriber
     {
         #region Properties
+
+        public List<FileSubscriber> asyncList;
 
         internal Dictionary<FileSubscriber, FileSystemWatcher> DictionaryWatcher { get; private set; }
 
@@ -59,14 +62,23 @@ namespace ControlModifiedFiles
             }
         }
 
-        internal void LoadVersionFiles(List<FileSubscriber> list)
+        internal Task<List<FileSubscriber>> LoadVersionFilesAsync(List<FileSubscriber> asyncList)
         {
-            for (int i = 0; i < list.Count; i++)
+            return Task.Run(() => LoadVersionFiles(asyncList));
+        }
+        internal List<FileSubscriber> LoadVersionFiles(List<FileSubscriber> asyncList)
+        {
+            List<FileSubscriber> asyncListResult = new List<FileSubscriber>();
+
+            foreach (FileSubscriber file in asyncList)
             {
-                FileInfo fileInfo = new FileInfo(list[i].Path);
-                int version = GetCurrentVersionFile(fileInfo, list[i], false);
-                list[i].Version = version;
+                FileInfo fileInfo = new FileInfo(file.Path);
+                int version = GetCurrentVersionFile(fileInfo, file, false);
+                file.Version = version;
+                asyncListResult.Add(file);
             }
+
+            return asyncListResult;
         }
 
         #endregion

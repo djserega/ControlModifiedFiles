@@ -46,5 +46,17 @@ namespace ControlModifiedFiles.Properties {
                 this["Autoload"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool AutoupdateVersion {
+            get {
+                return ((bool)(this["AutoupdateVersion"]));
+            }
+            set {
+                this["AutoupdateVersion"] = value;
+            }
+        }
     }
 }
