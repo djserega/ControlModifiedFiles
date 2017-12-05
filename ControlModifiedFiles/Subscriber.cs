@@ -56,6 +56,17 @@ namespace ControlModifiedFiles
             }
         }
 
+        internal void LoadVersionFiles(List<FileSubscriber> list)
+        {
+            for (int i = 0; i < list.Count; i++)
+            {
+                FileInfo fileInfo = new FileInfo(list[i].Path);
+                string fileNameWithoutExtension = GetFileNameWithoutExtension(fileInfo);
+                int version = GetCurrentVersionFile(fileInfo, list[i], fileNameWithoutExtension, fileInfo.Extension, false);
+                list[i].Version = version;
+            }
+        }
+
         #endregion
 
         #region Subscribe
@@ -157,7 +168,20 @@ namespace ControlModifiedFiles
 
         private int GetNewVersion(FileInfo fileInfo, FileSubscriber file, string fileNameWithoutExtension, string fileExtension)
         {
-            int newVersion = 0;
+            int newVersion = GetCurrentVersionFile(fileInfo, file, fileNameWithoutExtension, fileExtension);
+
+            newVersion++;
+
+            return newVersion;
+        }
+
+        private int GetCurrentVersionFile(FileInfo fileInfo, FileSubscriber file, string fileNameWithoutExtension,
+            string fileExtension, bool controlCurrentHash = true)
+        {
+            int currentVersion = 0;
+
+            if (String.IsNullOrWhiteSpace(file.DirectoryVersion))
+                return currentVersion;
 
             string fileNameWithVersion = $"{fileNameWithoutExtension} {_prefixNameVersion}";
             string filterFile = $"{fileNameWithVersion}*{fileExtension}";
@@ -169,7 +193,8 @@ namespace ControlModifiedFiles
             DateTime dateTimeMaxEdited = DateTime.MinValue;
             foreach (FileInfo versionFile in directoryInfo.GetFiles(filterFile))
             {
-                if (currentHash == GetMD5(versionFile.FullName))
+                if (currentHash == GetMD5(versionFile.FullName)
+                    && controlCurrentHash)
                     return 0;
 
                 if (dateTimeMaxEdited <= versionFile.LastWriteTime)
@@ -188,12 +213,10 @@ namespace ControlModifiedFiles
                 string stringVersion = nameFileVersion.Remove(0, fileNameWithVersion.Length);
                 int startIndex = stringVersion.Length - ($"}}{fileExtension}".Length);
                 stringVersion = stringVersion.Remove(startIndex);
-                int.TryParse(stringVersion, out newVersion);
+                int.TryParse(stringVersion, out currentVersion);
             }
 
-            newVersion++;
-
-            return newVersion;
+            return currentVersion;
         }
 
         private string GetMD5(string path)

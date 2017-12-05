@@ -137,8 +137,9 @@ namespace ControlModifiedFiles
             List<FileSubscriber> list = new SaveLoadConfig().LoadConfig();
             if (list != null)
             {
-                SetItemSouce(list);
                 subscriber.SubscribeChangeFiles(list);
+                subscriber.LoadVersionFiles(list);
+                SetItemSouce(list);
             }
         }
 
