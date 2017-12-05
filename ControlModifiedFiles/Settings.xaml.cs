@@ -119,7 +119,5 @@ namespace ControlModifiedFiles
             if (autoupdateVersion != null)
                 defaultSettings.AutoupdateVersion = (bool)autoupdateVersion;
         }
-
-
     }
 }
