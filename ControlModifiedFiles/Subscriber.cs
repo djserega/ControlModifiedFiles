@@ -13,7 +13,10 @@ namespace ControlModifiedFiles
         #region Properties
 
         internal Dictionary<FileSubscriber, FileSystemWatcher> DictionaryWatcher { get; private set; }
+
         private string _prefixNameVersion = "{version ";
+
+
 
         #endregion
 
@@ -178,24 +181,30 @@ namespace ControlModifiedFiles
         private int GetCurrentVersionFile(FileInfo fileInfo, FileSubscriber file, string fileNameWithoutExtension,
             string fileExtension, bool controlCurrentHash = true)
         {
-            int currentVersion = 0;
-
             if (String.IsNullOrWhiteSpace(file.DirectoryVersion))
-                return currentVersion;
+                return 0;
 
             string fileNameWithVersion = $"{fileNameWithoutExtension} {_prefixNameVersion}";
-            string filterFile = $"{fileNameWithVersion}*{fileExtension}";
+
+            FileInfo fileInfoMaxEdited = GetFileLastVersion(file, fileNameWithVersion, fileExtension, controlCurrentHash);
+
+            return GetNumberVersionIsFileName(fileInfoMaxEdited, fileInfo, fileNameWithVersion, fileExtension);
+        }
+
+        private FileInfo GetFileLastVersion(FileSubscriber file, string fileNameWithVersion, string fileExtension, bool controlCurrentHash = false)
+        {
+            FileInfo fileInfoMaxEdited = null;
 
             string currentHash = GetMD5(file.Path);
 
-            DirectoryInfo directoryInfo = new DirectoryInfo(file.DirectoryVersion);
-            FileInfo fileInfoMaxEdited = null;
+            FileInfo[] filesVersions = new DirectoryInfo(file.DirectoryVersion).GetFiles($"{fileNameWithVersion}*{fileExtension}");
+
             DateTime dateTimeMaxEdited = DateTime.MinValue;
-            foreach (FileInfo versionFile in directoryInfo.GetFiles(filterFile))
+            foreach (FileInfo versionFile in filesVersions)
             {
                 if (currentHash == GetMD5(versionFile.FullName)
                     && controlCurrentHash)
-                    return 0;
+                    return null;
 
                 if (dateTimeMaxEdited <= versionFile.LastWriteTime)
                 {
@@ -203,6 +212,13 @@ namespace ControlModifiedFiles
                     dateTimeMaxEdited = versionFile.LastWriteTime;
                 };
             };
+
+            return fileInfoMaxEdited;
+        }
+
+        private int GetNumberVersionIsFileName(FileInfo fileInfoMaxEdited, FileInfo fileInfo, string fileNameWithVersion, string fileExtension)
+        {
+            int currentVersion = 0;
 
             if (fileInfoMaxEdited != null)
             {

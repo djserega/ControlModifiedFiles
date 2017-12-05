@@ -9,7 +9,7 @@ namespace ControlModifiedFiles
 {
     internal class SaveLoadConfig
     {
-        private string _pathConfig = Environment.CurrentDirectory + "\\datarow.json";
+        private string _pathConfig = Environment.CurrentDirectory + "\\datarows.json";
 
         internal bool SaveConfig(List<FileSubscriber> list)
         {
@@ -22,7 +22,7 @@ namespace ControlModifiedFiles
                     serializer.Serialize(
                         serializer.ConvertToType<List<FileSubscriber>>(list)));
 
-                Dialog.ShowMessage("Настройки успешно сохранены.");
+                Dialog.ShowMessage("Настройки сохранены.");
                 return true;
             }
             catch (Exception)
@@ -38,7 +38,7 @@ namespace ControlModifiedFiles
             {
                 List<FileSubscriber> list = new JavaScriptSerializer().Deserialize<List<FileSubscriber>>(
                     new DirFile().LoadFile(_pathConfig));
-                Dialog.ShowMessage("Настройки успшешно восстановлены.");
+                Dialog.ShowMessage("Настройки восстановлены.");
                 return list;
             }
             catch (Exception)
