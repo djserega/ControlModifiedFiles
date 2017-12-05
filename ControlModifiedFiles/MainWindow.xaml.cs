@@ -37,6 +37,8 @@ namespace ControlModifiedFiles
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             dgList.ItemsSource = _listFile;
+            if (Properties.Settings.Default.Autoload)
+                LoadTable();
         }
 
         #endregion
@@ -96,12 +98,12 @@ namespace ControlModifiedFiles
 
         private void MiLoadTable_Click(object sender, RoutedEventArgs e)
         {
-            List<FileSubscriber> list = new SaveLoadConfig().LoadConfig();
-            if (list != null)
-            {
-                SetItemSouce(list);
-                subscriber.SubscribeChangeFiles(list);
-            }
+            LoadTable();
+        }
+
+        private void MiSettings_Click(object sender, RoutedEventArgs e)
+        {
+            new Settings().ShowDialog();
         }
 
         #endregion
@@ -129,6 +131,16 @@ namespace ControlModifiedFiles
         #endregion
 
         #region Private methods
+
+        private void LoadTable()
+        {
+            List<FileSubscriber> list = new SaveLoadConfig().LoadConfig();
+            if (list != null)
+            {
+                SetItemSouce(list);
+                subscriber.SubscribeChangeFiles(list);
+            }
+        }
 
         private void SetItemSouce(List<FileSubscriber> list)
         {

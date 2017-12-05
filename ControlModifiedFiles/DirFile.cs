@@ -61,11 +61,6 @@ namespace ControlModifiedFiles
 
         }
 
-        internal void OpenDirectory()
-        {
-            Process.Start(new ProcessStartInfo("explorer.exe", $"\"{Path}\""));
-        }
-
         internal DateTime CompareDatePlus(DateTime date1, DateTime date2)
         {
             if (date1.CompareTo(date2) == 1)
@@ -85,9 +80,11 @@ namespace ControlModifiedFiles
         {
             OpenFileDialog openFile = new OpenFileDialog()
             {
-                Filter = "Внешняя обработка (*.epf)|*.epf" +
-                "|Внешний отчет (*.erf)|*.erf" +
-                "|Поддерживаемые файлы|*.epf;*.erf",
+                Filter = "Поддерживаемые файлы (epf, erf, ert)|*.epf;*.erf;*.ert" +
+                "|Внешняя обработка (epf)|*.epf" +
+                "|Внешний отчет (erf)|*.erf" +
+                "|Внешняя обработка 7.7 (ert)|*.ert",
+                FilterIndex = 0,
                 Multiselect = false,
                 Title = "Выбор файла контроля"
             };
@@ -107,6 +104,7 @@ namespace ControlModifiedFiles
                 stream.Write(data);
             }
         }
+
         internal string LoadFile(string path)
         {
             string data;

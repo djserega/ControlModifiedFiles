@@ -134,16 +134,25 @@ namespace ControlModifiedFiles
 
         private string GetDirectoryVersion(FileInfo fileInfo)
         {
-            DirectoryInfo directoryInfoVersion = new DirectoryInfo($"{fileInfo.Directory}\\_Version\\");
-            if (!directoryInfoVersion.Exists)
-                directoryInfoVersion.Create();
+            string defaultDirectoryCache = Properties.Settings.Default.DirectoryCache;
 
-            DirectoryInfo directoryInfoFile = new DirectoryInfo(
-                $"{directoryInfoVersion.FullName}\\{GetFileNameWithoutExtension(fileInfo)}");
-            if (!directoryInfoFile.Exists)
-                directoryInfoFile.Create();
+            if (String.IsNullOrWhiteSpace(defaultDirectoryCache))
+            {
+                DirectoryInfo directoryInfoVersion = new DirectoryInfo($"{fileInfo.Directory}\\_Version\\");
+                if (!directoryInfoVersion.Exists)
+                    directoryInfoVersion.Create();
 
-            return directoryInfoFile.FullName;
+                DirectoryInfo directoryInfoFile = new DirectoryInfo(
+                    $"{directoryInfoVersion.FullName}\\{GetFileNameWithoutExtension(fileInfo)}");
+                if (!directoryInfoFile.Exists)
+                    directoryInfoFile.Create();
+
+                return directoryInfoFile.FullName;
+            }
+            else
+            {
+                return defaultDirectoryCache + "\\";
+            }
         }
 
         private int GetNewVersion(FileInfo fileInfo, FileSubscriber file, string fileNameWithoutExtension, string fileExtension)
@@ -186,6 +195,7 @@ namespace ControlModifiedFiles
 
             return newVersion;
         }
+
         private string GetMD5(string path)
         {
             string hash;

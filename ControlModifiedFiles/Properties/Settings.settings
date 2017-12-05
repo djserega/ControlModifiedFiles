@@ -2,10 +2,10 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="ControlModifiedFiles.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="DirectoryCache" Type="System.String" Scope="Application">
+    <Setting Name="DirectoryCache" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="Autoload" Type="System.Boolean" Scope="Application">
+    <Setting Name="Autoload" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
   </Settings>

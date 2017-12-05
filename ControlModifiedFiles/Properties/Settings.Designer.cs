@@ -23,21 +23,27 @@ namespace ControlModifiedFiles.Properties {
             }
         }
         
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
         public string DirectoryCache {
             get {
                 return ((string)(this["DirectoryCache"]));
             }
+            set {
+                this["DirectoryCache"] = value;
+            }
         }
         
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool Autoload {
             get {
                 return ((bool)(this["Autoload"]));
+            }
+            set {
+                this["Autoload"] = value;
             }
         }
     }
