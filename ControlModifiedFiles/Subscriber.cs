@@ -49,11 +49,14 @@ namespace ControlModifiedFiles
         {
             try
             {
-                var keyWatcher = DictionaryWatcher.First(f => f.Key == file);
-                FileSystemWatcher watcher = keyWatcher.Value;
-                watcher.EnableRaisingEvents = false;
-                watcher.Dispose();
-                DictionaryWatcher.Remove(keyWatcher.Key);
+                var keyWatcher = DictionaryWatcher.FirstOrDefault(f => f.Key == file);
+                if (keyWatcher.Key != null)
+                {
+                    FileSystemWatcher watcher = keyWatcher.Value;
+                    watcher.EnableRaisingEvents = false;
+                    watcher.Dispose();
+                    DictionaryWatcher.Remove(keyWatcher.Key);
+                }
             }
             catch (Exception)
             {
@@ -71,8 +74,15 @@ namespace ControlModifiedFiles
             foreach (FileSubscriber file in asyncList)
             {
                 FileInfo fileInfo = new FileInfo(file.Path);
-                int version = GetCurrentVersionFile(fileInfo, file, false);
-                file.Version = version;
+
+                if (fileInfo.Exists)
+                    file.Version = GetCurrentVersionFile(fileInfo, file, false);
+                else
+                {
+                    Dialog.ShowMessage($"Файл '{file.Path}' перемещен или удален.");
+                    file.Checked = false;
+                    UnsubscribeChangeFile(file);
+                }
                 asyncListResult.Add(file);
             }
 
@@ -216,7 +226,11 @@ namespace ControlModifiedFiles
 
             string currentHash = GetMD5(file.Path);
             if (String.IsNullOrWhiteSpace(currentHash))
+            {
+                file.Checked = false;
+                UnsubscribeChangeFile(file);
                 return fileInfoMaxEdited;
+            }
 
             FileInfo[] filesVersions = new DirectoryInfo(file.DirectoryVersion).GetFiles($"{_fileNameWithVersion}*{fileExtension}");
 
@@ -277,7 +291,7 @@ namespace ControlModifiedFiles
             }
             catch (FileNotFoundException)
             {
-                Dialog.ShowMessage($"Файл {path} перемещен или удален.");
+                Dialog.ShowMessage($"Файл '{path}' перемещен или удален.");
                 return hash;
             }
         }

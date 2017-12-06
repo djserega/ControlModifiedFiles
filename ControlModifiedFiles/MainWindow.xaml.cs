@@ -142,7 +142,11 @@ namespace ControlModifiedFiles
 
         private async Task StartUpdateVersionFiles()
         {
-            List<FileSubscriber> listVersion = await subscriber.LoadVersionFilesAsync(_listFile.ToList());
+            List<FileSubscriber> listVersion = await subscriber.LoadVersionFilesAsync(
+                _listFile.ToList().FindAll(f => f.Checked));
+
+            if (listVersion.Count == 0)
+                return;
 
             dgList.IsReadOnly = true;
 
