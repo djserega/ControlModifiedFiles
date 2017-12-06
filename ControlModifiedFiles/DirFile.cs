@@ -76,7 +76,7 @@ namespace ControlModifiedFiles
             return date1;
         }
 
-        internal string GetFileChecked(Window owner)
+        internal string[] GetFileChecked(Window owner)
         {
             OpenFileDialog openFile = new OpenFileDialog()
             {
@@ -85,16 +85,16 @@ namespace ControlModifiedFiles
                 "|Внешний отчет (erf)|*.erf" +
                 "|Внешняя обработка 7.7 (ert)|*.ert",
                 FilterIndex = 0,
-                Multiselect = false,
+                Multiselect = true,
                 Title = "Выбор файла контроля"
             };
 
             bool? result = openFile.ShowDialog(owner);
 
             if (result.HasValue && result.Value)
-                return openFile.FileName;
+                return openFile.FileNames;
             else
-                return string.Empty;
+                return null;
         }
 
         internal void SaveFile(string path, string data)

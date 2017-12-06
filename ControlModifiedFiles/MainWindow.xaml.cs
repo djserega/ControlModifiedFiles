@@ -49,44 +49,14 @@ namespace ControlModifiedFiles
 
         #region MainMenu
 
-        private void MiAddFile_Click(object sender, RoutedEventArgs e)
+        private void MiAddFiles_Click(object sender, RoutedEventArgs e)
         {
-            List<FileSubscriber> list = _listFile.ToList();
+            string[] fileNames = new DirFile().GetFileChecked(this);
 
-            string path = new DirFile().GetFileChecked(this);
-
-            if (String.IsNullOrWhiteSpace(path))
-            {
-                SetItemSouce(list);
+            if (fileNames == null)
                 return;
-            }
-
-            FileSubscriber finded = list.Find(f => f.Path == path);
-
-            if (finded != null)
-            {
-                Dialog.ShowMessage($"Выбранный файл уже контролируется:\n" +
-                    $"{path}");
-                return;
-            }
-
-            DirFile pathInfo = new DirFile(path);
-
-            ulong sizeFile = pathInfo.GetFileSize();
-
-            FileSubscriber fileChecked = new FileSubscriber()
-            {
-                Checked = true,
-                Path = path,
-                Size = sizeFile,
-                SizeString = pathInfo.GetSizeFormat(sizeFile)
-            };
-
-            subscriber.SubscribeChangeFile(fileChecked);
-
-            list.Add(fileChecked);
-
-            SetItemSouce(list);
+            
+            AddSelectedFilesIndgList(fileNames);
         }
 
         private void MiDeleteFile_Click(object sender, RoutedEventArgs e)
@@ -204,6 +174,41 @@ namespace ControlModifiedFiles
         #endregion
 
         #region Private methods
+
+        private void AddSelectedFilesIndgList(string[] fileNames)
+        {
+            List<FileSubscriber> list = _listFile.ToList();
+
+            foreach (string file in fileNames)
+            {
+                FileSubscriber finded = list.Find(f => f.Path == file);
+
+                if (finded != null)
+                {
+                    Dialog.ShowMessage($"Выбранный файл уже контролируется:\n" +
+                        $"{fileNames}");
+                    return;
+                }
+
+                DirFile pathInfo = new DirFile(file);
+
+                ulong sizeFile = pathInfo.GetFileSize();
+
+                FileSubscriber fileChecked = new FileSubscriber()
+                {
+                    Checked = true,
+                    Path = file,
+                    Size = sizeFile,
+                    SizeString = pathInfo.GetSizeFormat(sizeFile)
+                };
+
+                subscriber.SubscribeChangeFile(fileChecked);
+
+                list.Add(fileChecked);
+            }
+
+            SetItemSouce(list);
+        }
 
         private void LoadTable()
         {
