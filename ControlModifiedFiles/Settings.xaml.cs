@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,6 +20,8 @@ namespace ControlModifiedFiles
     /// </summary>
     public partial class Settings : Window
     {
+        public ICollection<RowFilter> _dgListFilter = new List<RowFilter>();
+
         #region Window
 
         public Settings()
@@ -65,6 +68,11 @@ namespace ControlModifiedFiles
             SetValueSettings(autoupdateVersion: cboxAutoload.IsChecked.Value);
         }
 
+        private void BtnRestoreFilter_Click(object sender, RoutedEventArgs e)
+        {
+            RestoreFilterByDefault();
+        }
+
         #region Element DirectoryCache
 
         private void TxtDirectoryCache_TextChanged(object sender, TextChangedEventArgs e)
@@ -99,6 +107,7 @@ namespace ControlModifiedFiles
             defaultSettings.DirectoryCache = txtDirectoryCache.Text;
             defaultSettings.Autoload = cboxAutoload.IsChecked.Value;
             defaultSettings.AutoupdateVersion = cboxAutoupdate.IsChecked.Value;
+            defaultSettings.ListFilterFiles = GetListInDgFilter();
         }
 
         private void ReadSettings()
@@ -107,6 +116,19 @@ namespace ControlModifiedFiles
             txtDirectoryCache.Text = defaultSettings.DirectoryCache;
             cboxAutoload.IsChecked = defaultSettings.Autoload;
             cboxAutoupdate.IsChecked = defaultSettings.AutoupdateVersion;
+
+            try
+            {
+                var defaultProperties = Properties.Settings.Default;
+                if (defaultProperties.ListFilterFiles == null)
+                    FillDgFilter(defaultProperties.ListFilterFilesPredefined);
+                else
+                    FillDgFilter(defaultProperties.ListFilterFiles);
+            }
+            catch (Exception)
+            {
+                Dialog.ShowMessage("Ошибка загрузки настроек фильтра.");
+            }
         }
 
         private void SetValueSettings(string directoryCache = null, bool? autoload = null, bool? autoupdateVersion = null)
@@ -119,5 +141,47 @@ namespace ControlModifiedFiles
             if (autoupdateVersion != null)
                 defaultSettings.AutoupdateVersion = (bool)autoupdateVersion;
         }
+
+        #region Filters
+
+        private void RestoreFilterByDefault()
+        {
+            FillDgFilter(Properties.Settings.Default.ListFilterFilesPredefined);
+        }
+
+        private void FillDgFilter(StringCollection collection)
+        {
+            _dgListFilter.Clear();
+            foreach (string itemFilter in collection)
+            {
+                string[] arrayFilter = itemFilter.Split('|');
+                _dgListFilter.Add(new RowFilter(arrayFilter[0], arrayFilter[1]));
+            }
+            dgFilter.ItemsSource = null;
+            dgFilter.ItemsSource = _dgListFilter;
+        }
+
+        private StringCollection GetListInDgFilter()
+        {
+            StringCollection collection = new StringCollection();
+
+            StringBuilder sb = new StringBuilder();
+            foreach (RowFilter itemFilter in _dgListFilter)
+            {
+                sb.Clear();
+
+                //if (collection.Count > 0)
+                //    sb.Append('|');
+
+                sb.Append(itemFilter.Present);
+                sb.Append('|');
+                sb.Append(itemFilter.Filter);
+                collection.Add(sb.ToString());
+            }
+
+            return collection;
+        }
+
+        #endregion
     }
 }

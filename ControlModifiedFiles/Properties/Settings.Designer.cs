@@ -58,5 +58,31 @@ namespace ControlModifiedFiles.Properties {
                 this["AutoupdateVersion"] = value;
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute(@"<?xml version=""1.0"" encoding=""utf-16""?>
+<ArrayOfString xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
+  <string>Поддерживаемые файлы (epf, erf, ert)|*.epf;*.erf;*.ert</string>
+  <string>Внешняя обработка (epf)|*.epf</string>
+  <string>Внешний отчет (erf)|*.erf</string>
+  <string>Внешняя обработка 7.7 (ert)|*.ert</string>
+</ArrayOfString>")]
+        public global::System.Collections.Specialized.StringCollection ListFilterFilesPredefined {
+            get {
+                return ((global::System.Collections.Specialized.StringCollection)(this["ListFilterFilesPredefined"]));
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        public global::System.Collections.Specialized.StringCollection ListFilterFiles {
+            get {
+                return ((global::System.Collections.Specialized.StringCollection)(this["ListFilterFiles"]));
+            }
+            set {
+                this["ListFilterFiles"] = value;
+            }
+        }
     }
 }

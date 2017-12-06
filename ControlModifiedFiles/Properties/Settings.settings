@@ -11,5 +11,17 @@
     <Setting Name="AutoupdateVersion" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
+    <Setting Name="ListFilterFilesPredefined" Type="System.Collections.Specialized.StringCollection" Scope="Application">
+      <Value Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;ArrayOfString xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
+  &lt;string&gt;Поддерживаемые файлы (epf, erf, ert)|*.epf;*.erf;*.ert&lt;/string&gt;
+  &lt;string&gt;Внешняя обработка (epf)|*.epf&lt;/string&gt;
+  &lt;string&gt;Внешний отчет (erf)|*.erf&lt;/string&gt;
+  &lt;string&gt;Внешняя обработка 7.7 (ert)|*.ert&lt;/string&gt;
+&lt;/ArrayOfString&gt;</Value>
+    </Setting>
+    <Setting Name="ListFilterFiles" Type="System.Collections.Specialized.StringCollection" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
   </Settings>
 </SettingsFile>

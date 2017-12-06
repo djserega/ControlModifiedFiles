@@ -78,15 +78,29 @@ namespace ControlModifiedFiles
 
         internal string[] GetFileChecked(Window owner)
         {
+            StringBuilder sb = new StringBuilder();
+            var userFilter = Properties.Settings.Default.ListFilterFiles;
+            if (userFilter == null)
+                sb.Append("Все файлы|*.*");
+            else
+            {
+                foreach (string itemFilter in userFilter)
+                {
+                    if (sb.Length > 0)
+                        sb.Append("|");
+                    sb.Append(itemFilter);
+                }
+            }
+            string filter = sb.ToString();
+
             OpenFileDialog openFile = new OpenFileDialog()
             {
-                Filter = "Поддерживаемые файлы (epf, erf, ert)|*.epf;*.erf;*.ert" +
-                "|Внешняя обработка (epf)|*.epf" +
-                "|Внешний отчет (erf)|*.erf" +
-                "|Внешняя обработка 7.7 (ert)|*.ert",
+                Filter = filter,
                 FilterIndex = 0,
                 Multiselect = true,
-                Title = "Выбор файла контроля"
+                Title = "Выбор файла контроля",
+                CheckFileExists = true,
+                CheckPathExists = true
             };
 
             bool? result = openFile.ShowDialog(owner);
