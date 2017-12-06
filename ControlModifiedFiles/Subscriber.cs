@@ -13,8 +13,6 @@ namespace ControlModifiedFiles
     {
         #region Properties
 
-        public List<FileSubscriber> asyncList;
-
         internal Dictionary<FileSubscriber, FileSystemWatcher> DictionaryWatcher { get; private set; }
 
         private string _prefixNameVersion = "{version ";
@@ -217,21 +215,26 @@ namespace ControlModifiedFiles
             FileInfo fileInfoMaxEdited = null;
 
             string currentHash = GetMD5(file.Path);
+            if (String.IsNullOrWhiteSpace(currentHash))
+                return fileInfoMaxEdited;
 
             FileInfo[] filesVersions = new DirectoryInfo(file.DirectoryVersion).GetFiles($"{_fileNameWithVersion}*{fileExtension}");
 
             DateTime dateTimeMaxEdited = DateTime.MinValue;
             foreach (FileInfo versionFile in filesVersions)
             {
-                if (currentHash == GetMD5(versionFile.FullName)
-                    && controlCurrentHash)
-                    return null;
-
-                if (dateTimeMaxEdited <= versionFile.LastWriteTime)
+                string md5VersionFile = GetMD5(versionFile.FullName);
+                if (!String.IsNullOrWhiteSpace(md5VersionFile))
                 {
-                    fileInfoMaxEdited = versionFile;
-                    dateTimeMaxEdited = versionFile.LastWriteTime;
-                };
+                    if (currentHash == md5VersionFile && controlCurrentHash)
+                        return null;
+
+                    if (dateTimeMaxEdited <= versionFile.LastWriteTime)
+                    {
+                        fileInfoMaxEdited = versionFile;
+                        dateTimeMaxEdited = versionFile.LastWriteTime;
+                    };
+                }
             };
 
             return fileInfoMaxEdited;
@@ -258,16 +261,25 @@ namespace ControlModifiedFiles
 
         private string GetMD5(string path)
         {
-            string hash;
-            using (MD5 md5 = MD5.Create())
+            string hash = "";
+
+            try
             {
-                using (FileStream stream = File.OpenRead(path))
+                using (MD5 md5 = MD5.Create())
                 {
-                    byte[] hashByte = md5.ComputeHash(stream);
-                    hash = BitConverter.ToString(hashByte).Replace("-", "").ToLowerInvariant();
+                    using (FileStream stream = File.OpenRead(path))
+                    {
+                        byte[] hashByte = md5.ComputeHash(stream);
+                        hash = BitConverter.ToString(hashByte).Replace("-", "").ToLowerInvariant();
+                    }
                 }
+                return hash;
             }
-            return hash;
+            catch (FileNotFoundException)
+            {
+                Dialog.ShowMessage($"Файл {path} перемещен или удален.");
+                return hash;
+            }
         }
 
         #endregion

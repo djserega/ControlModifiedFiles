@@ -55,7 +55,7 @@ namespace ControlModifiedFiles
 
             if (fileNames == null)
                 return;
-            
+
             AddSelectedFilesIndgList(fileNames);
         }
 
@@ -161,9 +161,9 @@ namespace ControlModifiedFiles
             dgList.IsReadOnly = false;
         }
 
-        private async void StartAutoupdateVersionAsync()
+        private async void StartAutoupdateVersionAsync(bool forcibly = false)
         {
-            if (Properties.Settings.Default.AutoupdateVersion)
+            if (Properties.Settings.Default.AutoupdateVersion || forcibly)
             {
                 await StartUpdateVersionFiles();
                 await Task.Delay(5 * 1000);
@@ -216,7 +216,7 @@ namespace ControlModifiedFiles
             if (list != null)
             {
                 subscriber.SubscribeChangeFiles(list);
-                StartUpdateVersionFiles();
+                StartAutoupdateVersionAsync(true);
                 SetItemSouce(list);
             }
         }
