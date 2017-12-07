@@ -123,10 +123,9 @@ namespace ControlModifiedFiles
 
             file.DirectoryVersion = GetDirectoryVersion(fileInfo);
 
-            FileSystemWatcher watcher = new FileSystemWatcher(fileInfo.DirectoryName)
+            FileSystemWatcher watcher = new FileSystemWatcher(fileInfo.DirectoryName, fileInfo.Name)
             {
-                NotifyFilter = NotifyFilters.LastWrite,
-                Filter = fileInfo.Name
+                NotifyFilter = NotifyFilters.LastWrite
             };
             watcher.Changed += new FileSystemEventHandler(ChangedFile);
             watcher.EnableRaisingEvents = true;
@@ -277,11 +276,14 @@ namespace ControlModifiedFiles
         {
             string hash = "";
 
+            return DateTime.Now.Ticks.ToString();
+
             try
             {
                 using (MD5 md5 = MD5.Create())
                 {
-                    using (FileStream stream = File.OpenRead(path))
+                    using (FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
+                    //using (FileStream stream = File.OpenRead(path))
                     {
                         byte[] hashByte = md5.ComputeHash(stream);
                         hash = BitConverter.ToString(hashByte).Replace("-", "").ToLowerInvariant();
