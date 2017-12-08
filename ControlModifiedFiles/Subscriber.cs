@@ -276,7 +276,7 @@ namespace ControlModifiedFiles
         {
             string hash = "";
 
-            return DateTime.Now.Ticks.ToString();
+            //return DateTime.Now.Ticks.ToString();
 
             try
             {
