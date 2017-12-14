@@ -141,10 +141,7 @@ namespace ControlModifiedFiles
                 FileSubscriber file = keyWatcher.Key;
 
                 FileInfo fileInfo = new FileInfo(file.Path);
-                string newFileName = GetFileNameVersion(fileInfo, file);
-
-                if (!String.IsNullOrWhiteSpace(newFileName))
-                    fileInfo.CopyTo(newFileName);
+                CreateNewVersionFile(fileInfo, file);
             }
             catch (Exception)
             {
@@ -154,6 +151,13 @@ namespace ControlModifiedFiles
         #endregion
 
         #region Version
+        private void CreateNewVersionFile(FileInfo fileInfo, FileSubscriber file)
+        {
+            string newFileName = GetFileNameVersion(fileInfo, file);
+
+            if (!String.IsNullOrWhiteSpace(newFileName))
+                fileInfo.CopyTo(newFileName);
+        }
 
         private string GetFileNameVersion(FileInfo fileInfo, FileSubscriber file)
         {
@@ -233,22 +237,27 @@ namespace ControlModifiedFiles
 
             FileInfo[] filesVersions = new DirectoryInfo(file.DirectoryVersion).GetFiles($"{_fileNameWithVersion}*{fileExtension}");
 
-            DateTime dateTimeMaxEdited = DateTime.MinValue;
-            foreach (FileInfo versionFile in filesVersions)
+            if (filesVersions.Count() > 0)
             {
-                string md5VersionFile = GetMD5(versionFile.FullName);
-                if (!String.IsNullOrWhiteSpace(md5VersionFile))
+                DateTime dateTimeMaxEdited = DateTime.MinValue;
+                foreach (FileInfo versionFile in filesVersions)
                 {
-                    if (currentHash == md5VersionFile && controlCurrentHash)
-                        return null;
-
-                    if (dateTimeMaxEdited <= versionFile.LastWriteTime)
+                    string md5VersionFile = GetMD5(versionFile.FullName);
+                    if (!String.IsNullOrWhiteSpace(md5VersionFile))
                     {
-                        fileInfoMaxEdited = versionFile;
-                        dateTimeMaxEdited = versionFile.LastWriteTime;
-                    };
-                }
-            };
+                        if (currentHash == md5VersionFile && controlCurrentHash)
+                            return null;
+
+                        if (dateTimeMaxEdited <= versionFile.LastWriteTime)
+                        {
+                            fileInfoMaxEdited = versionFile;
+                            dateTimeMaxEdited = versionFile.LastWriteTime;
+                        };
+                    }
+                };
+            }
+            else
+                CreateNewVersionFile(new FileInfo(file.Path), file);
 
             return fileInfoMaxEdited;
         }
@@ -276,18 +285,30 @@ namespace ControlModifiedFiles
         {
             string hash = "";
 
-            //return DateTime.Now.Ticks.ToString();
+            string currentTime = DateTime.Now.Ticks.ToString();
 
             try
             {
                 using (MD5 md5 = MD5.Create())
                 {
-                    using (FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
+                    string fileNameTemp = $"{Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)}" +
+                        $"\\Temp\\controlmodifiedfiles_{currentTime}.tmp";
+                    FileInfo fileInfoTemp = new FileInfo(fileNameTemp);
+                    if (!fileInfoTemp.Exists)
+                    {
+                        FileInfo fileInfo = new FileInfo(path);
+                        fileInfo.CopyTo(fileNameTemp);
+                    }
+
+                    using (FileStream stream = new FileStream(fileNameTemp, FileMode.Open, FileAccess.Read, FileShare.Read))
                     //using (FileStream stream = File.OpenRead(path))
                     {
                         byte[] hashByte = md5.ComputeHash(stream);
                         hash = BitConverter.ToString(hashByte).Replace("-", "").ToLowerInvariant();
                     }
+                    fileInfoTemp.Refresh();
+                    if (fileInfoTemp.Exists)
+                        fileInfoTemp.Delete();
                 }
                 return hash;
             }
@@ -296,6 +317,11 @@ namespace ControlModifiedFiles
                 Dialog.ShowMessage($"Файл '{path}' перемещен или удален.");
                 return hash;
             }
+            catch (IOException)
+            {
+                return hash;
+            }
+            
         }
 
         #endregion
