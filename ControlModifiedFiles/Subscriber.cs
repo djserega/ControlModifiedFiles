@@ -17,6 +17,7 @@ namespace ControlModifiedFiles
 
         private string _prefixNameVersion = "{version ";
         private string _fileNameWithoutExtension;
+        private string _fileNameWithExtension;
         private string _fileNameWithVersion;
 
         #endregion
@@ -97,11 +98,12 @@ namespace ControlModifiedFiles
         {
             long startIndex = fileInfo.Name.Length - fileInfo.Extension.Length;
             _fileNameWithoutExtension = fileInfo.Name.Remove((int)startIndex);
+            _fileNameWithExtension = fileInfo.Name;
         }
 
         private void GetFileNameWithVersion()
         {
-            _fileNameWithVersion = $"{_fileNameWithoutExtension} {_prefixNameVersion}";
+            _fileNameWithVersion = Path.Combine(_fileNameWithoutExtension, _prefixNameVersion);
         }
 
         #endregion
@@ -151,6 +153,7 @@ namespace ControlModifiedFiles
         #endregion
 
         #region Version
+
         private void CreateNewVersionFile(FileInfo fileInfo, FileSubscriber file)
         {
             string newFileName = GetFileNameVersion(fileInfo, file);
@@ -166,12 +169,13 @@ namespace ControlModifiedFiles
             if (version == 0)
                 return null;
 
-            string fileNameVersion =
-                $"{file.DirectoryVersion}" +
-                $"\\{_fileNameWithoutExtension} " +
+            string fileName = 
+                $"{_fileNameWithoutExtension} " +
                 $"{_prefixNameVersion}" +
                 $"{version}}}" +
                 $"{fileInfo.Extension}";
+
+            string fileNameVersion = Path.Combine(file.DirectoryVersion, fileName);
 
             return fileNameVersion;
         }
@@ -182,14 +186,17 @@ namespace ControlModifiedFiles
 
             if (String.IsNullOrWhiteSpace(defaultDirectoryCache))
             {
-                DirectoryInfo directoryInfoVersion = new DirectoryInfo($"{fileInfo.Directory}\\_Version\\");
+                DirectoryInfo directoryInfoVersion = new DirectoryInfo(Path.Combine(
+                    fileInfo.Directory.FullName,
+                    $"_Version{Path.DirectorySeparatorChar}"));
                 if (!directoryInfoVersion.Exists)
                     directoryInfoVersion.Create();
 
                 GetFileNameWithoutExtension(fileInfo);
 
-                DirectoryInfo directoryInfoFile = new DirectoryInfo(
-                    $"{directoryInfoVersion.FullName}\\{_fileNameWithoutExtension}");
+                DirectoryInfo directoryInfoFile = new DirectoryInfo(Path.Combine(
+                    directoryInfoVersion.FullName,
+                    $"{_fileNameWithExtension}{Path.DirectorySeparatorChar}"));
                 if (!directoryInfoFile.Exists)
                     directoryInfoFile.Create();
 
@@ -225,17 +232,29 @@ namespace ControlModifiedFiles
 
         private FileInfo GetFileLastVersion(FileSubscriber file, string fileExtension, bool controlCurrentHash = false)
         {
-            FileInfo fileInfoMaxEdited = null;
 
             string currentHash = GetMD5(file.Path);
             if (String.IsNullOrWhiteSpace(currentHash))
             {
-                file.Checked = false;
-                UnsubscribeChangeFile(file);
-                return fileInfoMaxEdited;
+                UnsubscribeFile(file);
+                return null;
             }
 
-            FileInfo[] filesVersions = new DirectoryInfo(file.DirectoryVersion).GetFiles($"{_fileNameWithVersion}*{fileExtension}");
+            FileInfo[] filesVersions;
+            try
+            {
+                filesVersions = new DirectoryInfo(file.DirectoryVersion).GetFiles($"{_fileNameWithVersion}*{fileExtension}");
+            }
+            catch (Exception)
+            {
+                UnsubscribeFile(file);
+                return null;
+            }
+
+            if (filesVersions == null)
+                return null;
+
+            FileInfo fileInfoMaxEdited = null;
 
             if (filesVersions.Count() > 0)
             {
@@ -260,6 +279,12 @@ namespace ControlModifiedFiles
                 CreateNewVersionFile(new FileInfo(file.Path), file);
 
             return fileInfoMaxEdited;
+        }
+
+        private void UnsubscribeFile(FileSubscriber file)
+        {
+            file.Checked = false;
+            UnsubscribeChangeFile(file);
         }
 
         private int GetNumberVersionIsFileName(FileInfo fileInfoMaxEdited, FileInfo fileInfo)
@@ -291,8 +316,10 @@ namespace ControlModifiedFiles
             {
                 using (MD5 md5 = MD5.Create())
                 {
-                    string fileNameTemp = $"{Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)}" +
-                        $"\\Temp\\controlmodifiedfiles_{currentTime}.tmp";
+                    string fileNameTemp = Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                        "Temp",
+                        $"controlmodifiedfiles_{currentTime}.tmp");
                     FileInfo fileInfoTemp = new FileInfo(fileNameTemp);
                     if (!fileInfoTemp.Exists)
                     {
