@@ -68,6 +68,7 @@ namespace ControlModifiedFiles
         {
             return Task.Run(() => LoadVersionFiles(asyncList));
         }
+
         internal List<FileSubscriber> LoadVersionFiles(List<FileSubscriber> asyncList)
         {
             List<FileSubscriber> asyncListResult = new List<FileSubscriber>();
@@ -103,7 +104,7 @@ namespace ControlModifiedFiles
 
         private void GetFileNameWithVersion()
         {
-            _fileNameWithVersion = Path.Combine(_fileNameWithoutExtension, _prefixNameVersion);
+            _fileNameWithVersion = $"{_fileNameWithoutExtension} {_prefixNameVersion}";
         }
 
         #endregion
@@ -154,17 +155,19 @@ namespace ControlModifiedFiles
 
         #region Version
 
-        private void CreateNewVersionFile(FileInfo fileInfo, FileSubscriber file)
+        private void CreateNewVersionFile(FileInfo fileInfo, FileSubscriber file, string newFileName = null)
         {
-            string newFileName = GetFileNameVersion(fileInfo, file);
+            if (String.IsNullOrWhiteSpace(newFileName))
+                newFileName = GetFileNameVersion(fileInfo, file);
 
             if (!String.IsNullOrWhiteSpace(newFileName))
                 fileInfo.CopyTo(newFileName);
         }
 
-        private string GetFileNameVersion(FileInfo fileInfo, FileSubscriber file)
+        private string GetFileNameVersion(FileInfo fileInfo, FileSubscriber file, int? version = null)
         {
-            int version = GetNewVersion(fileInfo, file, fileInfo.Extension);
+            if (version == null)
+                version = GetNewVersion(fileInfo, file, fileInfo.Extension);
 
             if (version == 0)
                 return null;
@@ -182,30 +185,29 @@ namespace ControlModifiedFiles
 
         private string GetDirectoryVersion(FileInfo fileInfo)
         {
-            string defaultDirectoryCache = Properties.Settings.Default.DirectoryCache;
+            string directoryCache = Properties.Settings.Default.DirectoryCache;
 
-            if (String.IsNullOrWhiteSpace(defaultDirectoryCache))
+            if (String.IsNullOrWhiteSpace(directoryCache))
             {
                 DirectoryInfo directoryInfoVersion = new DirectoryInfo(Path.Combine(
                     fileInfo.Directory.FullName,
                     $"_Version{Path.DirectorySeparatorChar}"));
+
                 if (!directoryInfoVersion.Exists)
                     directoryInfoVersion.Create();
 
-                GetFileNameWithoutExtension(fileInfo);
-
-                DirectoryInfo directoryInfoFile = new DirectoryInfo(Path.Combine(
-                    directoryInfoVersion.FullName,
-                    $"{_fileNameWithExtension}{Path.DirectorySeparatorChar}"));
-                if (!directoryInfoFile.Exists)
-                    directoryInfoFile.Create();
-
-                return directoryInfoFile.FullName;
+                directoryCache = directoryInfoVersion.FullName;
             }
-            else
-            {
-                return defaultDirectoryCache + "\\";
-            }
+
+            GetFileNameWithoutExtension(fileInfo);
+
+            DirectoryInfo directoryInfoFile = new DirectoryInfo(Path.Combine(
+                directoryCache,
+                $"{_fileNameWithExtension}{Path.DirectorySeparatorChar}"));
+            if (!directoryInfoFile.Exists)
+                directoryInfoFile.Create();
+
+            return directoryInfoFile.FullName;
         }
 
         private int GetNewVersion(FileInfo fileInfo, FileSubscriber file, string fileExtension)
@@ -227,7 +229,10 @@ namespace ControlModifiedFiles
 
             FileInfo fileInfoMaxEdited = GetFileLastVersion(file, fileInfo.Extension, controlCurrentHash);
 
-            return GetNumberVersionIsFileName(fileInfoMaxEdited, fileInfo);
+            if (fileInfoMaxEdited == null)
+                return 0;
+            else
+                return GetNumberVersionIsFileName(fileInfoMaxEdited, fileInfo);
         }
 
         private FileInfo GetFileLastVersion(FileSubscriber file, string fileExtension, bool controlCurrentHash = false)
@@ -240,10 +245,21 @@ namespace ControlModifiedFiles
                 return null;
             }
 
-            FileInfo[] filesVersions;
+            FileInfo[] filesVersions = null;
             try
             {
                 filesVersions = new DirectoryInfo(file.DirectoryVersion).GetFiles($"{_fileNameWithVersion}*{fileExtension}");
+            }
+            catch (DirectoryNotFoundException)
+            {
+                CreateNewVersionFile(
+                    new FileInfo(file.Path),
+                    file,
+                    GetFileNameVersion(
+                        new FileInfo(file.Path),
+                        file,
+                        1));
+                return null;
             }
             catch (Exception)
             {
