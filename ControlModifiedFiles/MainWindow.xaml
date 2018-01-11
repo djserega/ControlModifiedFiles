@@ -10,6 +10,8 @@
             <MenuItem x:Name="miLoadTable" Header="Восстановить таблицу" Height="25" Click="MiLoadTable_Click"/>
             <Separator Width="10"/>
             <MenuItem x:Name="miSettings" Header="Настройки" Height="25" Click="MiSettings_Click"/>
+            <Separator Width="10"/>
+            <MenuItem x:Name="miOpenDirectoryVersion" Header="Открыть каталог версий" Height="25" Click="MiOpenDirectoryVersion_Click"/>
         </Menu> 
         <DataGrid x:Name="dgList" Margin="0,25,0,0" AutoGenerateColumns="True" CanUserAddRows="False" SelectionMode="Single" 
                   CurrentCellChanged="DgList_CurrentCellChanged" RowEditEnding="DgList_RowEditEnding"

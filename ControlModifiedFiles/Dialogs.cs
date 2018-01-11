@@ -41,9 +41,14 @@ namespace ControlModifiedFiles
 
             return selectedDirectory;
         }
+
         internal static void OpenDirectory(string path)
         {
-            Process.Start(new ProcessStartInfo("explorer.exe", $"\"{path}\""));
+            char dirSeparator = Path.DirectorySeparatorChar;
+            if (path.Last() != dirSeparator)
+                path += dirSeparator;
+
+            Process.Start(new ProcessStartInfo("explorer.exe", path));
         }
     }
 }

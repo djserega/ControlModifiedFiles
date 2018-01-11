@@ -61,7 +61,8 @@ namespace ControlModifiedFiles
 
         private void MiDeleteFile_Click(object sender, RoutedEventArgs e)
         {
-            FileSubscriber selectedRow = (FileSubscriber)dgList.CurrentItem;
+            FileSubscriber selectedRow = GetCurrentRow();
+
             if (selectedRow == null)
                 return;
 
@@ -72,6 +73,11 @@ namespace ControlModifiedFiles
             list.Remove(selectedRow);
 
             SetItemSouce(list);
+        }
+
+        private FileSubscriber GetCurrentRow()
+        {
+            return (FileSubscriber)dgList.CurrentItem;
         }
 
         private void MiSaveTable_Click(object sender, RoutedEventArgs e)
@@ -87,6 +93,16 @@ namespace ControlModifiedFiles
         private void MiSettings_Click(object sender, RoutedEventArgs e)
         {
             new Settings().ShowDialog();
+        }
+
+        private void MiOpenDirectoryVersion_Click(object sender, RoutedEventArgs e)
+        {
+            FileSubscriber selectedRow = GetCurrentRow();
+
+            if (selectedRow == null)
+                return;
+
+            Dialog.OpenDirectory(selectedRow.DirectoryVersion);
         }
 
         #endregion
