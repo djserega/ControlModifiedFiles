@@ -44,6 +44,9 @@ namespace ControlModifiedFiles
 
         internal static void OpenDirectory(string path)
         {
+            if (String.IsNullOrWhiteSpace(path))
+                return;
+
             char dirSeparator = Path.DirectorySeparatorChar;
             if (path.Last() != dirSeparator)
                 path += dirSeparator;
