@@ -30,7 +30,6 @@ namespace ControlModifiedFiles
             DictionaryWatcher = new Dictionary<FileSubscriber, FileSystemWatcher>();
         }
 
-        private static readonly object _locker = new object();
         #endregion
 
         #region Internal methods
