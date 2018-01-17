@@ -186,7 +186,7 @@ namespace ControlModifiedFiles
             if (Properties.Settings.Default.AutoupdateVersion || forcibly)
             {
                 await StartUpdateVersionFiles();
-                await Task.Delay(5 * 1000);
+                await Task.Delay(60 * 1000);
                 StartAutoupdateVersionAsync();
             }
         }

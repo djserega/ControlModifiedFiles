@@ -78,10 +78,15 @@ namespace ControlModifiedFiles
 
         internal string[] GetFileChecked(Window owner)
         {
-            StringBuilder sb = new StringBuilder();
-            var userFilter = Properties.Settings.Default.ListFilterFiles;
+            StringBuilder sb = new StringBuilder();      
+
+            var defaultProperties = Properties.Settings.Default;
+            var userFilter = defaultProperties.ListFilterFiles;
             if (userFilter == null)
-                sb.Append("Все файлы|*.*");
+                userFilter = defaultProperties.ListFilterFilesPredefined;
+
+            if (userFilter == null)
+                sb.Append("*.*");
             else
             {
                 foreach (string itemFilter in userFilter)
