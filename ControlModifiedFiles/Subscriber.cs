@@ -161,7 +161,15 @@ namespace ControlModifiedFiles
                 newFileName = GetFileNameVersion(fileInfo, file);
 
             if (!String.IsNullOrWhiteSpace(newFileName))
-                fileInfo.CopyTo(newFileName);
+            {
+                try
+                {
+                    fileInfo.CopyTo(newFileName);
+                }
+                catch (Exception)
+                {
+                }
+            }
         }
 
         private string GetFileNameVersion(FileInfo fileInfo, FileSubscriber file, int? version = null)
