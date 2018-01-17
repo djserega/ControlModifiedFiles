@@ -166,21 +166,15 @@ namespace ControlModifiedFiles
 
             if (!String.IsNullOrWhiteSpace(newFileName))
             {
-                try
-                {
-                    fileInfo.CopyTo(newFileName);
-                }
-                catch (Exception)
-                {
-=======
-                    if (!new FileInfo(newFileName).Exists)
-                        fileInfo.CopyTo(newFileName);
-                }
-                catch (Exception ex)
-                {
-                    Dialog.ShowMessage($"Ошибка создания версии файла: {newFileName}");
->>>>>>> ec2360c8749a744e04e9bd33126561d1d9caa904
-                }
+                if (!new FileInfo(newFileName).Exists)
+					try
+					{
+						fileInfo.CopyTo(newFileName);
+					}
+					catch (Exception ex)
+					{
+						//Dialog.ShowMessage($"Ошибка создания версии файла: {newFileName}");
+					}
             }
         }
 
