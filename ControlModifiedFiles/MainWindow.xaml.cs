@@ -22,10 +22,20 @@ namespace ControlModifiedFiles
     /// </summary>
     public partial class MainWindow : Window
     {
+
         #region Properties
 
-        public ICollection<FileSubscriber> _listFile = new List<FileSubscriber>();
-        private Subscriber subscriber = new Subscriber();
+        public ICollection<FileSubscriber> listFile = new List<FileSubscriber>();
+        private Subscriber _subscriber = new Subscriber();
+
+        #endregion
+
+        #region Events
+
+        internal async void StartUpdateVersionFilesIsChanged(object sender, ChangedFileEvent args)
+        {
+            //await StartUpdateVersionFiles();
+        }
 
         #endregion
 
@@ -38,11 +48,13 @@ namespace ControlModifiedFiles
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            dgList.ItemsSource = _listFile;
+            dgList.ItemsSource = listFile;
             if (Properties.Settings.Default.Autoload)
                 LoadTable();
 
             StartAutoupdateVersionAsync();
+
+            _subscriber.ChangeFileEvent += StartUpdateVersionFilesIsChanged;
         }
 
         #endregion
@@ -66,9 +78,9 @@ namespace ControlModifiedFiles
             if (selectedRow == null)
                 return;
 
-            List<FileSubscriber> list = _listFile.ToList();
+            List<FileSubscriber> list = listFile.ToList();
 
-            subscriber.UnsubscribeChangeFile(selectedRow);
+            _subscriber.UnsubscribeChangeFile(selectedRow);
 
             list.Remove(selectedRow);
 
@@ -82,7 +94,7 @@ namespace ControlModifiedFiles
 
         private void MiSaveTable_Click(object sender, RoutedEventArgs e)
         {
-            bool result = new SaveLoadConfig().SaveConfig(_listFile.ToList());
+            bool result = new SaveLoadConfig().SaveConfig(listFile.ToList());
         }
 
         private void MiLoadTable_Click(object sender, RoutedEventArgs e)
@@ -156,17 +168,27 @@ namespace ControlModifiedFiles
 
         #region Update version
 
-        private async Task StartUpdateVersionFiles()
+        private async Task StartUpdateVersionFiles(FileSubscriber fileSubscriber = null)
         {
-            List<FileSubscriber> listVersion = await subscriber.LoadVersionFilesAsync(
-                _listFile.ToList().FindAll(f => f.Checked));
+            List<FileSubscriber> listVersion = new List<FileSubscriber>();
+
+            if (fileSubscriber == null)
+            {
+                listVersion = await _subscriber.LoadVersionFilesAsync(
+                  listFile.ToList().FindAll(f => f.Checked));
+            }
+            else
+            {
+                listVersion = await _subscriber.LoadVersionFilesAsync(
+                  listFile.ToList().FindAll(f => f == fileSubscriber));
+            }
 
             if (listVersion.Count == 0)
                 return;
 
             dgList.IsReadOnly = true;
 
-            List<FileSubscriber> list = _listFile.ToList();
+            List<FileSubscriber> list = listFile.ToList();
             for (int i = 0; i < list.Count; i++)
             {
                 FileSubscriber finded = listVersion.Find(f => f.Path == list[i].Path);
@@ -197,7 +219,7 @@ namespace ControlModifiedFiles
 
         private void AddSelectedFilesIndgList(string[] fileNames)
         {
-            List<FileSubscriber> list = _listFile.ToList();
+            List<FileSubscriber> list = listFile.ToList();
 
             foreach (string file in fileNames)
             {
@@ -222,7 +244,7 @@ namespace ControlModifiedFiles
                     SizeString = pathInfo.GetSizeFormat(sizeFile)
                 };
 
-                subscriber.SubscribeChangeFile(fileChecked);
+                _subscriber.SubscribeChangeFile(fileChecked);
 
                 list.Add(fileChecked);
             }
@@ -235,7 +257,7 @@ namespace ControlModifiedFiles
             List<FileSubscriber> list = new SaveLoadConfig().LoadConfig();
             if (list != null)
             {
-                subscriber.SubscribeChangeFiles(list);
+                _subscriber.SubscribeChangeFiles(list);
                 StartAutoupdateVersionAsync(true);
                 SetItemSouce(list);
             }
@@ -243,8 +265,8 @@ namespace ControlModifiedFiles
 
         private void SetItemSouce(List<FileSubscriber> list)
         {
-            _listFile = list;
-            dgList.ItemsSource = _listFile;
+            listFile = list;
+            dgList.ItemsSource = listFile;
         }
 
         #endregion

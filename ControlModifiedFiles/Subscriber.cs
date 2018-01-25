@@ -11,6 +11,8 @@ namespace ControlModifiedFiles
 {
     internal class Subscriber
     {
+        internal event EventHandler<ChangedFileEvent> ChangeFileEvent;
+
         #region Properties
 
         internal Dictionary<FileSubscriber, FileSystemWatcher> DictionaryWatcher { get; private set; }
@@ -148,6 +150,11 @@ namespace ControlModifiedFiles
 
                 FileInfo fileInfo = new FileInfo(file.Path);
                 CreateNewVersionFile(fileInfo, file);
+
+                var args = new ChangedFileEvent();
+                if (args != null)
+                    foreach (EventHandler<ChangedFileEvent> deleg in ChangeFileEvent.GetInvocationList())
+                        deleg.Invoke(this, args);
             }
             catch (Exception)
             {
@@ -258,6 +265,8 @@ namespace ControlModifiedFiles
                 return null;
             }
 
+            FileInfo fileInfoPath = new FileInfo(file.Path);
+
             FileInfo[] filesVersions = null;
             try
             {
@@ -266,10 +275,10 @@ namespace ControlModifiedFiles
             catch (DirectoryNotFoundException)
             {
                 CreateNewVersionFile(
-                    new FileInfo(file.Path),
+                    fileInfoPath,
                     file,
                     GetFileNameVersion(
-                        new FileInfo(file.Path),
+                        fileInfoPath,
                         file,
                         1));
                 return null;
@@ -305,7 +314,13 @@ namespace ControlModifiedFiles
                 };
             }
             else
-                CreateNewVersionFile(new FileInfo(file.Path), file);
+                CreateNewVersionFile(
+                    fileInfoPath,
+                    file,
+                    GetFileNameVersion(
+                        fileInfoPath,
+                        file,
+                        1));
 
             return fileInfoMaxEdited;
         }
@@ -367,10 +382,14 @@ namespace ControlModifiedFiles
                         {
                             byte[] hashByte = md5.ComputeHash(stream);
                             hash = BitConverter.ToString(hashByte).Replace("-", "").ToLowerInvariant();
+                            stream.Close();
                         }
+
                         fileInfoTemp.Refresh();
                         if (fileInfoTemp.Exists)
                             fileInfoTemp.Delete();
+
+                        md5.Clear();
                     }
                 }
                 catch (FileNotFoundException)
